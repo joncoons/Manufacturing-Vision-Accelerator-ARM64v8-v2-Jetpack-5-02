@@ -113,6 +113,64 @@
               }
             }
           },
+          "Mfg_Vision_CIS_v2_jp5_Modular": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.Mfg_Vision_CIS_v2_jp5_Modular}",
+              "createOptions": {
+                "NetworkingConfig": {
+                  "EndpointsConfig": {
+                    "host": {}
+                  }
+                },
+                "HostConfig": {
+                  "IpcMode": "host",
+                  "gpus": 0,
+                  "runtime": "nvidia",
+                  "NetworkMode": "host",
+                  "Binds": [
+                    "/home/edge_assets/images_volume:/images_volume",
+                    "/home/edge_assets/model_sync:/model_volume",
+                    "/home/edge_assets/inference_volume:/app/inference",
+                    "/home/edge_assets/capture_volume:/app/capture",
+                    "/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_v2_jp5_Modular:/image_sink_volume",
+                    "/home/edge_assets/CIS_Config/Mfg_Vision_CIS_v2_jp5_Modular:/config"
+                  ],
+                  "Mounts": [
+                    {
+                      "Type": "volume",
+                      "Source": "images_volume",
+                      "Target": "/var/opt/images_volume"
+                    },
+                    {
+                      "Type": "volume",
+                      "Source": "inference_volume",
+                      "Target": "/var/opt/inference_volume"
+                    },
+                    {
+                      "Type": "volume",
+                      "Source": "capture_volume",
+                      "Target": "/var/opt/capture_volume"
+                    }
+                  ]
+                }
+              }
+            },
+            "env": {
+              "MYSQL_DATABASE": {
+                "value": "${MYSQL_DB}"
+              },
+              "MYSQL_PWD": {
+                "value": "${MYSQL_SA_PASSWORD}"
+              },
+              "BOUNDARY_DETECTION": {
+                "value": "false"
+              }
+            }
+          },
           "Mfg_Vision_v2_jp5_Model_Sync": {
             "startupOrder": 2,
             "settings": {
@@ -140,6 +198,91 @@
             },
             "status": "running",
             "restartPolicy": "always"
+          },
+          "Mfg_Vision_v2_jp5_Capture_Repo": {
+            "startupOrder": 3,
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.Mfg_Vision_v2_jp5_Capture_Repo}",
+              "createOptions": {
+                "HostConfig": {
+                  "Binds": [
+                    "/home/edge_assets/capture_volume:/capture_volume"
+                  ]
+                },
+                "Mounts": [
+                  {
+                    "Type": "volume",
+                    "Source": "capture_volume",
+                    "Target": "/var/opt/capture_volume"
+                  }
+                ]
+              }
+            }
+          },
+          "Mfg_Vision_v2_jp5_Inference_Repo": {
+            "startupOrder": 4,
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.Mfg_Vision_v2_jp5_Inference_Repo}",
+              "createOptions": {
+                "HostConfig": {
+                  "Binds": [
+                    "/home/edge_assets/inference_volume:/inference_volume"
+                  ]
+                },
+                "Mounts": [
+                  {
+                    "Type": "volume",
+                    "Source": "inference_volume",
+                    "Target": "/var/opt/inference_volume"
+                  }
+                ]
+              }
+            }
+          },
+          "Mfg_Vision_v2_jp5_Image_Upload": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.Mfg_Vision_v2_jp5_Image_Upload}",
+              "createOptions": {
+                "NetworkingConfig": {
+                  "EndpointsConfig": {
+                    "host": {}
+                  }
+                },
+                "HostConfig": {
+                  "NetworkMode": "host",
+                  "Binds": [
+                    "/home/edge_assets/images_volume:/images_volume"
+                  ],
+                  "Mounts": [
+                    {
+                      "Type": "volume",
+                      "Source": "images_volume",
+                      "Target": "/var/opt/images"
+                    }
+                  ]
+                }
+              }
+            },
+            "env": {
+              "ADL_G2": {
+                "value": "false"
+              },
+              "STORE_CONN_STR": {
+                "value": "${STORAGE_CONN_STR}"
+              }
+            }
           },
           "Mfg_Vision_v2_jp5_File_Cleanup": {
             "version": "1.0",

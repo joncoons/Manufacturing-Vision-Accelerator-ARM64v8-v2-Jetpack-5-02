@@ -21,7 +21,7 @@
           "edgeAgent": {
             "type": "docker",
             "settings": {
-              "image": "mcr.microsoft.com/azureiotedge-agent:1.2",
+              "image": "mcr.microsoft.com/azureiotedge-agent:1.4.0-linux-arm64v8",
               "createOptions": "{}"
             },
             "env": {
@@ -35,7 +35,7 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "mcr.microsoft.com/azureiotedge-hub:1.2",
+              "image": "mcr.microsoft.com/azureiotedge-hub:1.4.0-linux-arm64v8",
               "createOptions": "{\"HostConfig\":{\"PortBindings\":{\"5671/tcp\":[{\"HostPort\":\"5671\"}],\"8883/tcp\":[{\"HostPort\":\"8883\"}],\"443/tcp\":[{\"HostPort\":\"443\"}]}}}"
             },
             "env": {
@@ -54,28 +54,6 @@
             "settings": {
               "image": "aiotdevopsacr.azurecr.io/mfg_vision_cis_v2_jp5_monolithic:0.1.1.0-arm64v8",
               "createOptions": "{\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"IpcMode\":\"host\",\"gpus\":0,\"runtime\":\"nvidia\",\"NetworkMode\":\"host\",\"Binds\":[\"/home/edge_assets/images_volume:/images_volume\",\"/home/edge_assets/model_sync:/model_volume\",\"/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_v2_jp5_Monolithic:/image_sink_volume\",\"/home/edge_assets/CIS_Config/Mfg_Vision_CIS_v2_jp5_Monolithic:/config\"],\"Mounts\":[{\"Type\":\"volume\",\"Source\":\"images_volume\",\"Target\":\"/var/opt/images_volume\"}]}}"
-            },
-            "env": {
-              "MYSQL_DATABASE": {
-                "value": "defectdb"
-              },
-              "MYSQL_PWD": {
-                "value": "Password123"
-              },
-              "BOUNDARY_DETECTION": {
-                "value": "false"
-              }
-            }
-          },
-          "Mfg_Vision_CIS_v2_jp5_Modular": {
-            "version": "1.0",
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
-            "settings": {
-              "image": "aiotdevopsacr.azurecr.io/mfg_vision_cis_v2_jp5_modular:0.1.1.0-arm64v8",
-              "createOptions": "{\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"IpcMode\":\"host\",\"gpus\":0,\"runtime\":\"nvidia\",\"NetworkMode\":\"host\",\"Binds\":[\"/home/edge_assets/images_volume:/images_volume\",\"/home/edge_assets/model_sync:/model_volume\",\"/home/edge_assets/inference_volume:/app/inference\",\"/home/edge_assets/capture_volume:/app/capture\",\"/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_v2_jp5_Modular:/image_sink_volume\",\"/home/edge_assets/CIS_Config/Mfg_Vision_CIS_v2_jp5_Modular:/config\"],\"Mounts\":[{\"Type\":\"v",
-              "createOptions01": "olume\",\"Source\":\"images_volume\",\"Target\":\"/var/opt/images_volume\"},{\"Type\":\"volume\",\"Source\":\"inference_volume\",\"Target\":\"/var/opt/inference_volume\"},{\"Type\":\"volume\",\"Source\":\"capture_volume\",\"Target\":\"/var/opt/capture_volume\"}]}}"
             },
             "env": {
               "MYSQL_DATABASE": {
@@ -110,46 +88,6 @@
             },
             "status": "running",
             "restartPolicy": "always"
-          },
-          "Mfg_Vision_v2_jp5_Capture_Repo": {
-            "startupOrder": 3,
-            "version": "1.0",
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
-            "settings": {
-              "image": "aiotdevopsacr.azurecr.io/mfg_vision_v2_jp5_capture_repo:0.1.1.0-arm64v8",
-              "createOptions": "{\"HostConfig\":{\"Binds\":[\"/home/edge_assets/capture_volume:/capture_volume\"]},\"Mounts\":[{\"Type\":\"volume\",\"Source\":\"capture_volume\",\"Target\":\"/var/opt/capture_volume\"}]}"
-            }
-          },
-          "Mfg_Vision_v2_jp5_Inference_Repo": {
-            "startupOrder": 4,
-            "version": "1.0",
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
-            "settings": {
-              "image": "aiotdevopsacr.azurecr.io/mfg_vision_v2_jp5_inference_repo:0.1.1.0-arm64v8",
-              "createOptions": "{\"HostConfig\":{\"Binds\":[\"/home/edge_assets/inference_volume:/inference_volume\"]},\"Mounts\":[{\"Type\":\"volume\",\"Source\":\"inference_volume\",\"Target\":\"/var/opt/inference_volume\"}]}"
-            }
-          },
-          "Mfg_Vision_v2_jp5_Image_Upload": {
-            "version": "1.0",
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
-            "settings": {
-              "image": "${MODULES.Mfg_Vision_v2_jp5_Image_Upload}",
-              "createOptions": "{\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"NetworkMode\":\"host\",\"Binds\":[\"/home/edge_assets/images_volume:/images_volume\"],\"Mounts\":[{\"Type\":\"volume\",\"Source\":\"images_volume\",\"Target\":\"/var/opt/images\"}]}}"
-            },
-            "env": {
-              "ADL_G2": {
-                "value": "false"
-              },
-              "STORE_CONN_STR": {
-                "value": "DefaultEndpointsProtocol=https;AccountName=aiotblob;AccountKey=j/Ebmubii9I6DMogO9YdEI7QSSyKhshohEqMw74+36ORVwAzMRj/jpHPWp2kR1Xvcd9VZVtW9Io++AStbJ/faQ==;EndpointSuffix=core.windows.net"
-              }
-            }
           },
           "Mfg_Vision_v2_jp5_File_Cleanup": {
             "version": "1.0",

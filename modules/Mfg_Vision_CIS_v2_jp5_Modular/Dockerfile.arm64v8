@@ -1,22 +1,22 @@
-FROM nvcr.io/nvidia/l4t-base:r32.5.0
+FROM nvcr.io/nvidia/l4t-ml:r35.1.0-py3
 
 ARG DEBIAN_FRONTEND=noninteractive
 
 COPY qemu-aarch64-static /usr/bin/qemu-aarch64-static
 RUN cd /usr/bin && chmod a+rwx qemu-aarch64-static
-RUN apt update && apt install -y --no-install-recommends \
-    libomp-dev \
-    build-essential \
-    software-properties-common \
-    libopenblas-dev \
-    libpython3.6-dev \
-    python3-pip \
-    python3-dev \
-    cmake \
-    mlocate \
-    unattended-upgrades && \
-    rm -rf /var/lib/apt/lists/*
-RUN unattended-upgrade
+# RUN apt update && apt install -y --no-install-recommends \
+#     libomp-dev \
+#     build-essential \
+#     software-properties-common \
+#     libopenblas-dev \
+#     libpython3.6-dev \
+#     python3-pip \
+#     python3-dev \
+#     cmake \
+#     mlocate \
+#     unattended-upgrades && \
+#     rm -rf /var/lib/apt/lists/*
+# RUN unattended-upgrade
 
 # Create folder structure and set permissions
 # When combined with deployment manifest, an edge_assets directory will be created on the host device
@@ -46,10 +46,10 @@ RUN cd /opt/Vimba_5_1/Tools/Viewer/Bin/arm_64bit && chmod +x libVimbaC.so && cho
 RUN cp /opt/Vimba_5_1/Tools/Viewer/Bin/arm_64bit/libVimbaC.so /usr/lib/aarch64-linux-gnu
 
 # ONNX & ONNX runtime, OpenCV foundational packages
-RUN python3 -m pip install --upgrade pip wheel setuptools
-RUN python3 -m pip install pybind11 pytest
-RUN python3 -m pip install cython numpy>=1.19.0 pillow 
-RUN python3 -m pip install opencv-python-headless~=4.5.5 opencv-contrib-python-headless~=4.5.5 
+# RUN python3 -m pip install --upgrade pip wheel setuptools
+# RUN python3 -m pip install pybind11 pytest
+# RUN python3 -m pip install cython numpy>=1.19.0 pillow 
+# RUN python3 -m pip install opencv-python-headless~=4.5.5 opencv-contrib-python-headless~=4.5.5 
 RUN python3 -m pip install azure-iot-device~=2.7.0 shapely
 RUN python3 -m pip install mysql-connector-python
 
@@ -57,19 +57,19 @@ RUN python3 -m pip install mysql-connector-python
 # RUN python3 -m pip install onnx>=1.8.0
 
 # Comment out if not using YOLOv5->ONNX
-RUN python3 -m pip install torch torchvision
-RUN python3 -m pip install pandas tqdm PyYAML
-RUN python3 -m pip install scipy seaborn requests
-RUN python3 -m pip install pybind11 pytest protobuf
-RUN python3 -m pip install objdict
+# RUN python3 -m pip install torch torchvision
+# RUN python3 -m pip install pandas tqdm PyYAML
+# RUN python3 -m pip install scipy seaborn requests
+# RUN python3 -m pip install pybind11 pytest protobuf
+# RUN python3 -m pip install objdict
 
 # Get runtime from Nvidia Jetson Zoo https://elinux.org/Jetson_Zoo
-RUN wget https://nvidia.box.com/shared/static/bfs688apyvor4eo8sf3y1oqtnarwafww.whl -O onnxruntime_gpu-1.8.0-cp36-cp36m-linux_aarch64.whl
-RUN python3 -m pip install onnxruntime_gpu-1.8.0-cp36-cp36m-linux_aarch64.whl
-RUN rm -rf onnxruntime_gpu-1.8.0-cp36-cp36m-linux_aarch64.whl
+RUN wget https://nvidia.box.com/shared/static/v59xkrnvederwewo2f1jtv6yurl92xso.whl -O onnxruntime_gpu-1.12.1-cp38-cp38-linux_aarch64.whl
+RUN python3 -m pip install onnxruntime_gpu-1.12.1-cp38-cp38-linux_aarch64.whl
+RUN rm -rf onnxruntime_gpu-1.12.1-cp38-cp38-linux_aarch64.whl
 
 # Comment out if not using Basler
-RUN python3 -m pip install pypylon
+# RUN python3 -m pip install pypylon
 
 # Comment out if not using Allied Vision camera
 #Pulled from https://stackoverflow.com/questions/55313610/importerror-libgl-so-1-cannot-open-shared-object-file-no-such-file-or-directo
@@ -81,11 +81,11 @@ WORKDIR /app
 
 COPY /app/ .
 
-ENV OPENBLAS_CORETYPE=ARMV8:$OPENBLAS_CORETYPE
-ENV LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libgomp.so.1:$LD_PRELOAD
-ENV LD_LIBRARY_PATH=/usr/local/cuda-10.2/lib64:$LD_LIBRARY_PATH
-ENV PATH=/usr/local/cuda-10.2/bin:$PATH
-RUN ldconfig
+# ENV OPENBLAS_CORETYPE=ARMV8:$OPENBLAS_CORETYPE
+# ENV LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libgomp.so.1:$LD_PRELOAD
+# ENV LD_LIBRARY_PATH=/usr/local/cuda-10.2/lib64:$LD_LIBRARY_PATH
+# ENV PATH=/usr/local/cuda-10.2/bin:$PATH
+# RUN ldconfig
 
 
 CMD [ "python3", "-u", "./main.py" ]
