@@ -11,7 +11,7 @@
             "registryCredentials": {
               "aiotdevopsacr": {
                 "username": "aiotdevopsacr",
-                "password": "MrZSX8Lxt5QtJPtzPvYHGn1OVcK/iUPv",
+                "password": "f2aNoetO4iUEyaA5/9Yhn/OqM==M6byv",
                 "address": "aiotdevopsacr.azurecr.io"
               }
             }
@@ -80,7 +80,7 @@
                 "value": "/models/"
               },
               "STORE_CONN_STR": {
-                "value": "DefaultEndpointsProtocol=https;AccountName=aiotblob;AccountKey=j/Ebmubii9I6DMogO9YdEI7QSSyKhshohEqMw74+36ORVwAzMRj/jpHPWp2kR1Xvcd9VZVtW9Io++AStbJ/faQ==;EndpointSuffix=core.windows.net"
+                "value": "DefaultEndpointsProtocol=https;AccountName=aiotblob;AccountKey=sl6EIqd8h3VfxiShj11J/XrhM0qMos3+FDTBZhxufJyGsfoFHO/tlMbYjqiVQ8wCMEFq7etsTsTf+AStDchvDg==;EndpointSuffix=core.windows.net"
               },
               "BLOB_AZURE_MODEL_CONTAINER": {
                 "value": "model-sync"

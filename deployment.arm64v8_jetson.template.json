@@ -141,6 +141,34 @@
             "status": "running",
             "restartPolicy": "always"
           },
+          "Mfg_Vision_v2_jp5_Image_Upload": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.Mfg_Vision_v2_jp5_Image_Upload}",
+              "createOptions": {
+                "NetworkingConfig": {
+                  "EndpointsConfig": {
+                    "host": {}
+                  }
+                },
+                "HostConfig": {
+                  "NetworkMode": "host",
+                  "Binds": [
+                    "/home/edge_assets/images_volume:/images_volume"
+                  ],
+                  "Mounts": [
+                    {
+                      "Type": "volume",
+                      "Source": "images_volume",
+                      "Target": "/var/opt/images"
+                    }
+                  ]
+                }
+              }
+            },
           "Mfg_Vision_v2_jp5_File_Cleanup": {
             "version": "1.0",
             "type": "docker",
