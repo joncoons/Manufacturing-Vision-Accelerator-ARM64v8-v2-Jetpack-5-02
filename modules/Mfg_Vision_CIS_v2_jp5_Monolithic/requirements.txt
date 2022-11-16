@@ -1,0 +1,15 @@
+pybind11 
+pytest
+Cython 
+pillow
+azure-iot-device~=2.7.0 
+shapely
+mysql-connector-python
+scipy
+requests
+opencv-contrib-python-headless~=4.5.5
+torch==1.8.1 
+torchvision==0.9.1
+protobuf~=3.17.3
+# pypylon
+# onnx~=1.8.1

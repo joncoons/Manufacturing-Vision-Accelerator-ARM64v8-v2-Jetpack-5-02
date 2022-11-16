@@ -1,22 +1,18 @@
-FROM nvcr.io/nvidia/l4t-ml:r35.1.0-py3
+# FROM nvcr.io/nvidia/l4t-cuda:11.4.14-runtime
+FROM nvcr.io/nvidia/l4t-tensorrt:r8.4.1-runtime
 
-ARG DEBIAN_FRONTEND=noninteractive
+WORKDIR /app
 
 COPY qemu-aarch64-static /usr/bin/qemu-aarch64-static
 RUN cd /usr/bin && chmod a+rwx qemu-aarch64-static
-# RUN apt update && apt install -y --no-install-recommends \
-#     libomp-dev \
-#     build-essential \
-#     software-properties-common \
-#     libopenblas-dev \
-#     libpython3.6-dev \
-#     python3-pip \
-#     python3-dev \
-#     cmake \
-#     mlocate \
-#     unattended-upgrades && \
-#     rm -rf /var/lib/apt/lists/*
-# RUN unattended-upgrade
+ARG DEBIAN_FRONTEND=noninteractive
+ARG INSTALL_FOLDER=cv2_files
+ENV runtime=nvidia
+ENV CUDA_HOME=/usr/local/cuda-11.4:$CUDA_HOME
+ENV CUDA_PATH=/usr/local/cuda:$CUDA_PATH
+ENV CUDNN_HOME=/usr/lib/aarch64-linux-gnu:$CUDNN_HOME
+
+COPY requirements.txt ./
 
 # Create folder structure and set permissions
 # When combined with deployment manifest, an edge_assets directory will be created on the host device
@@ -25,16 +21,33 @@ RUN mkdir /images_volume && chmod -R 777 /images_volume
 RUN mkdir /image_sink_volume && chmod -R 777 /image_sink_volume
 RUN mkdir /config && chmod -R 777 /config
 
-RUN apt-get update
-
-# Shapely prereq
 RUN apt update && apt install -y --no-install-recommends \
-    libgeos-dev
-
-# Comment out if not using ACV->ONNX
-# RUN apt install -y --no-install-recommends \
-#     libprotobuf-dev protobuf-compiler && \
-#     rm -rf /var/lib/apt/lists/*
+    wget \
+    zlib1g \
+    ca-certificates \
+    libprotobuf-dev \
+    protobuf-compiler \
+    libgfortran4 \
+    libopenblas-base \
+    libopenmpi-dev \
+    libomp-dev \
+    build-essential \
+    libopenblas-dev \
+    python3-pip \
+    python3-dev \
+    cmake \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+    libgeos-dev && \
+    python3 -m pip install --upgrade pip wheel setuptools requests && \
+    python3 -m pip install -r requirements.txt && \
+    wget https://nvidia.box.com/shared/static/v59xkrnvederwewo2f1jtv6yurl92xso.whl -O onnxruntime_gpu-1.12.1-cp38-cp38-linux_aarch64.whl && \
+    python3 -m pip install onnxruntime_gpu-1.12.1-cp38-cp38-linux_aarch64.whl && \
+    rm -rf onnxruntime_gpu-1.12.1-cp38-cp38-linux_aarch64.whl && \
+    apt remove -y --purge wget cmake build-essential python3-pip && \
+    apt autoremove -y --purge && \ 
+    apt clean
 
 # Comment out if not using Allied Vision camera
 COPY VimbaSDK/Vimba_v5.1_ARM64.tgz /opt
@@ -45,47 +58,18 @@ RUN echo "$GENICAM_GENTL64_PATH"
 RUN cd /opt/Vimba_5_1/Tools/Viewer/Bin/arm_64bit && chmod +x libVimbaC.so && chown root:root libVimbaC.so 
 RUN cp /opt/Vimba_5_1/Tools/Viewer/Bin/arm_64bit/libVimbaC.so /usr/lib/aarch64-linux-gnu
 
-# ONNX & ONNX runtime, OpenCV foundational packages
-# RUN python3 -m pip install --upgrade pip wheel setuptools
-# RUN python3 -m pip install pybind11 pytest
-# RUN python3 -m pip install cython numpy>=1.19.0 pillow 
-# RUN python3 -m pip install opencv-python-headless~=4.5.5 opencv-contrib-python-headless~=4.5.5 
-RUN python3 -m pip install azure-iot-device~=2.7.0 shapely
-RUN python3 -m pip install mysql-connector-python
-
-# Comment out if not using ACV->ONNX
-# RUN python3 -m pip install onnx>=1.8.0
-
-# Comment out if not using YOLOv5->ONNX
-# RUN python3 -m pip install torch torchvision
-# RUN python3 -m pip install pandas tqdm PyYAML
-# RUN python3 -m pip install scipy seaborn requests
-# RUN python3 -m pip install pybind11 pytest protobuf
-# RUN python3 -m pip install objdict
-
-# Get runtime from Nvidia Jetson Zoo https://elinux.org/Jetson_Zoo
-RUN wget https://nvidia.box.com/shared/static/v59xkrnvederwewo2f1jtv6yurl92xso.whl -O onnxruntime_gpu-1.12.1-cp38-cp38-linux_aarch64.whl
-RUN python3 -m pip install onnxruntime_gpu-1.12.1-cp38-cp38-linux_aarch64.whl
-RUN rm -rf onnxruntime_gpu-1.12.1-cp38-cp38-linux_aarch64.whl
-
-# Comment out if not using Basler
-# RUN python3 -m pip install pypylon
-
-# Comment out if not using Allied Vision camera
-#Pulled from https://stackoverflow.com/questions/55313610/importerror-libgl-so-1-cannot-open-shared-object-file-no-such-file-or-directo
-RUN apt-get clean
-RUN apt-get update
-RUN apt-get install ffmpeg libsm6 libxext6  -y
-# /////////////////////////////////////////
-WORKDIR /app
-
 COPY /app/ .
 
-# ENV OPENBLAS_CORETYPE=ARMV8:$OPENBLAS_CORETYPE
-# ENV LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libgomp.so.1:$LD_PRELOAD
-# ENV LD_LIBRARY_PATH=/usr/local/cuda-10.2/lib64:$LD_LIBRARY_PATH
-# ENV PATH=/usr/local/cuda-10.2/bin:$PATH
-# RUN ldconfig
+ENV OPENBLAS_CORETYPE=ARMV8:$OPENBLAS_CORETYPE
+ENV LD_LIBRARY_PATH=/usr/lib/aarch64-linux-gnu:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/usr/local/lib/python3.8/dist-packages/opencv_contrib_python_headless.libs:$LD_LIBRARY_PATH
+ENV PATH=/usr/local/cuda-11.4/bin:$PATH
+ENV PATH=/usr/lib/aarch64-linux-gnu:$PATH
+ENV PYTHONPATH=$PYTHONPATH:/app/inference
+ENV LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libgomp.so.1:$LD_PRELOAD
+ENV LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libcudnn.so.8:$LD_PRELOAD
 
+RUN ldconfig
 
 CMD [ "python3", "-u", "./main.py" ]

@@ -1,0 +1,125 @@
+# FROM visionaccelerator.azurecr.io/edge_base/arm64v8/l4t_pytorch_cv2src_ort_152:0.0.1-arm64v8
+# sudo docker build -f Dockerfile_cuda_opencv.arm64v8 . -t visionaccelerator.azurecr.io/edge_base/arm64v8/l4t_v5_cuda_pytorch_cv2src_ort:0.0.1-arm64v8 && sudo docker push visionaccelerator.azurecr.io/edge_base/arm64v8/l4t_v5_cuda_pytorch_cv2src_ort:0.0.1-arm64v8
+
+# FROM nvcr.io/nvidia/l4t-cuda:11.4.14-runtime
+FROM nvcr.io/nvidia/l4t-tensorrt:r8.4.1-runtime
+
+ARG DEBIAN_FRONTEND=noninteractive
+ARG INSTALL_FOLDER=cv2_files
+ENV runtime=nvidia
+ENV OPENBLAS_CORETYPE=ARMV8:$OPENBLAS_CORETYPE
+ENV LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libgomp.so.1:$LD_PRELOAD
+ENV LD_LIBRARY_PATH=/usr/local/cuda-11.4/lib64:$LD_LIBRARY_PATH
+ENV PATH=/usr/local/cuda-11.4/bin:$PATH
+ENV PATH=/usr/lib/aarch64-linux-gnu:$PATH
+ENV PYTHONPATH=$PYTHONPATH:/app/inference
+
+# Create folder structure and set permissions
+# When combined with deployment manifest, an edge_assets directory will be created on the host device
+RUN mkdir /model_volume && chmod -R 777 /model_volume
+RUN mkdir /images_volume && chmod -R 777 /images_volume
+RUN mkdir /image_sink_volume && chmod -R 777 /image_sink_volume
+RUN mkdir /config && chmod -R 777 /config
+
+RUN apt update -y
+RUN apt install -y --no-install-recommends -y software-properties-common wget 
+RUN add-apt-repository universe && add-apt-repository multiverse && add-apt-repository restricted && add-apt-repository main
+
+RUN apt update
+
+RUN wget http://launchpadlibrarian.net/516139268/libjasper1_1.900.1-debian1-2.4ubuntu1.3_arm64.deb \
+    && wget http://launchpadlibrarian.net/516139264/libjasper-dev_1.900.1-debian1-2.4ubuntu1.3_arm64.deb \
+    && dpkg -i libjasper1_1.900.1-debian1-2.4ubuntu1.3_arm64.deb \
+    && dpkg -i libjasper-dev_1.900.1-debian1-2.4ubuntu1.3_arm64.deb \
+    && apt update && rm -f *.deb
+
+RUN apt install --no-install-recommends -y \
+    ca-certificates \
+    libprotobuf-dev \
+    protobuf-compiler \
+    libgfortran4 \
+    libopenblas-base \
+    libopenmpi-dev \
+    libomp-dev \
+    build-essential \
+    cmake \
+    libgtk2.0-dev \
+    pkg-config \
+    libavcodec-dev \
+    libavformat-dev \
+    libswscale-dev \
+    libgstreamer1.0-dev \
+    libgstreamer-plugins-base1.0-dev \
+    python3-dev \
+    python-dev \
+    python-numpy \
+    python3-numpy \
+    python3-pip \
+    libtbb2 \
+    libtbb-dev \
+    libjpeg-dev \
+    libpng-dev \
+    libtiff-dev \
+    libjasper-dev \
+    libdc1394-22-dev \
+    libwebp-dev \
+    libv4l-dev \
+    v4l-utils \
+    qv4l2 \
+    # v4l2ucp \
+    curl \
+    unzip \
+    libgeos-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p ${INSTALL_FOLDER}
+RUN cd ${INSTALL_FOLDER} && curl -L \
+    https://github.com/opencv/opencv/archive/4.5.1.zip -o opencv-4.5.1.zip \
+    && curl -L https://github.com/opencv/opencv_contrib/archive/4.5.1.zip -o opencv_contrib-4.5.1.ip \
+    && unzip opencv-4.5.1.zip && unzip opencv_contrib-4.5.1.zip 
+
+RUN mkdir -p ${INSTALL_FOLDER}/opencv-4.5.1/release \
+    && cd ${INSTALL_FOLDER}/opencv-4.5.1/release \
+    && cmake -D WITH_CUDA=ON -D ENABLE_PRECOMPILED_HEADERS=OFF \
+    -D CUDA_ARCH_BIN="7.2" -D CUDA_ARCH_PTX="" \
+    -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib-4.5.1/modules \
+    -D WITH_GSTREAMER=ON -D WITH_LIBV4L=ON -D BUILD_opencv_python2=ON \
+    -D BUILD_opencv_python3=ON -D BUILD_TESTS=OFF -D BUILD_PERF_TESTS=OFF \
+    -D BUILD_EXAMPLES=OFF -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local ..
+RUN cd ${INSTALL_FOLDER}/opencv-4.5.1/release \
+    && make -j8 \
+    && make install
+RUN sh -c 'echo "/usr/local/lib" >> /etc/ld.so.conf.d/opencv.conf' \
+    && ldconfig
+
+RUN rm -rf ${INSTALL_FOLDER} \
+    && apt autoremove --purge \
+    && apt clean
+
+ENV PATH=/usr/local/cuda/bin:${PATH}
+
+RUN wget -qO- "https://github.com/Kitware/CMake/releases/download/v3.23.3/cmake-3.23.3-linux-aarch64.tar.gz" | tar --strip-components=1 -xz -C /usr/local
+
+RUN python3 -m pip install --upgrade pip wheel setuptools
+RUN python3 -m pip install protobuf~=3.17.3
+RUN python3 -m pip install pybind11 pytest
+RUN python3 -m pip install Cython pillow 
+RUN python3 -m pip install azure-iot-device~=2.7.0 shapely
+RUN python3 -m pip install mysql-connector-python
+RUN python3 -m pip install scipy requests
+RUN pip3 install onnxruntime==1.12.1
+
+
+# # from Nvidia Jetson Zoo https://elinux.org/Jetson_Zoo
+
+RUN wget https://nvidia.box.com/shared/static/v59xkrnvederwewo2f1jtv6yurl92xso.whl -O onnxruntime_gpu-1.12.1-cp38-cp38-linux_aarch64.whl
+RUN python3 -m pip install onnxruntime_gpu-1.12.1-cp38-cp38-linux_aarch64.whl
+RUN rm -rf onnxruntime_gpu-1.12.1-cp38-cp38-linux_aarch64.whl
+
+RUN wget https://developer.download.nvidia.com/compute/redist/jp/v50/pytorch/torch-1.12.0a0+2c916ef.nv22.3-cp38-cp38-linux_aarch64.whl 
+RUN python3 -m pip install torch-1.12.0a0+2c916ef.nv22.3-cp38-cp38-linux_aarch64.whl
+RUN rm -rf torch-1.12.0a0+2c916ef.nv22.3-cp38-cp38-linux_aarch64.whl
+
+RUN wget -qO- "https://github.com/pytorch/vision/archive/refs/tags/v0.13.1.tar.gz" | tar --strip-components=1 -xz -C /usr/local
+
+
