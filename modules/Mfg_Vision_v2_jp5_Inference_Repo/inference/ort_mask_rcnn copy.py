@@ -43,40 +43,26 @@ class ONNXRuntimeObjectDetection():
         self.classes = classes
         self.num_classes = len(classes)
              
-    def predict(self, normalized_image, image):
+    def predict(self, pre_image, image):
         sess_input = self.session.get_inputs()
         sess_output = self.session.get_outputs()
         output_names = [output.name for output in sess_output]
-        outputs = self.session.run(output_names=output_names, input_feed={sess_input[0].name:normalized_image})
+        outputs = self.session.run(output_names=output_names, input_feed={sess_input[0].name:pre_image})
         
-        def _get_box_dims(image_shape, box):
+        def _get_box_dims(box):
+        # def _get_box_dims(image_shape, box):
             box_keys = ['xmin', 'ymin', 'xmax', 'ymax']
-            height, width = image_shape[0], image_shape[1]
-            print(f"height: {height}, width: {width}")
-            bbox = dict(zip(box_keys, [int(coordinate.item()) for coordinate in box]))
+            # height, width = image_shape[0], image_shape[1]
+            # print(f"height: {height}, width: {width}")
+            # bbox = dict(zip(box_keys, [int(coordinate.item()) for coordinate in box]))
+            bbox = dict(zip(box_keys, [(coordinate.item()) for coordinate in box]))
             return bbox
 
         def _get_prediction(boxes, labels, scores, masks, image_shape, classes):
-            # _pred = [] 
-            # _mask = []          
-            # for mask, box, label_index, score in zip(masks, boxes, labels, scores):
-            #     if score <= self.target_prob:
-            #         continue
-            #     box_dims = _get_box_dims(image_shape, box)
-            #     mask = mask[0, :, :, None] 
-            #     mask = mask > self.target_prob
-            #     print(f"Mask in Inference: {mask}")
-
-            #     prediction = {  
-            #         'probability': score.item(),
-            #         'labelId': label_index.item(),
-            #         'labelName': classes[label_index],
-            #         'bbox': box_dims,
-            #     }
-            #     _pred.append(prediction)
-            #     _mask.append(mask)
-
-            # return _pred, _mask
+            now = datetime.now()
+            filetime = now.strftime("%Y%d%m%H%M%S%f")
+            annotatedName = f"mask-{filetime}-annotated.jpg"
+            annotatedPath = os.path.join('/images_volume', annotatedName)
 
             raw_pred = []
             
@@ -85,17 +71,16 @@ class ONNXRuntimeObjectDetection():
             for mask, box, label_index, score in zip(masks, boxes, labels, scores):
                 if score <= self.target_prob:
                     continue
-                bbox = _get_box_dims(image_shape, box)
+                bbox = _get_box_dims(box)
+                # bbox = _get_box_dims(image_shape, box)
                 probability = round(score.item(),2)
                 labelId = label_index.item()
                 labelName = classes[label_index]
                 # image_text = f"{labelName}@{probability*100}%"
                 image_text = f"{probability*100}%"
                 mask = mask[0, :, :, None]
-                print(f'mask.shape: {mask.shape}')
                 mask = cv2.resize(mask, (image.shape[1], image.shape[0]), 0, 0, interpolation = cv2.INTER_NEAREST)    
                 mask = mask > self.target_prob
-                print(f"mask: {mask}")
                 image_masked = image.copy()
                 image_masked[mask] = (0, 255, 100)
                 alpha = 0.3  # alpha blending with range 0 to 1
@@ -105,7 +90,7 @@ class ONNXRuntimeObjectDetection():
                 # annotated_frame = cv2.rectangle(annotated_frame, start_point, end_point, color, thickness)
                 # annotated_frame = cv2.putText(annotated_frame, image_text, start_point, fontFace = cv2.FONT_HERSHEY_TRIPLEX, fontScale = .5, color = (255, 255, 255))
 
-                # FrameSave(annotated_mask_path, annotated_frame)           
+                FrameSave(annotatedPath, annotated_frame)           
 
                 prediction = {  
                     'probability': probability,
@@ -115,17 +100,17 @@ class ONNXRuntimeObjectDetection():
                 }
                 raw_pred.append(prediction)
 
-            return raw_pred, annotated_frame
+            return raw_pred, annotatedName, annotatedPath
 
         boxes, labels, scores, masks = outputs[0], outputs[1], outputs[2], outputs[3]
-        predictions, masked_image = _get_prediction(boxes, labels, scores, masks, (self.height_onnx, self.width_onnx), self.classes)
-        
+        predictions, a_name, a_path = _get_prediction(boxes, labels, scores, masks, (self.height_onnx, self.width_onnx), self.classes)
+
         if len(predictions) > 0:
             print(f"Filtered predictions: {predictions}")
-            return predictions, masked_image
+            return predictions, a_name, a_path
         else:
             print("No predictions passed the threshold")  
-            return [], None
+            return []
 
 def log_msg(msg):
     print("{}: {}".format(datetime.now(), msg))
@@ -158,15 +143,17 @@ def predict_mask_rcnn(image):
     frame = np.expand_dims(norm_img_data, axis=0)
 
     t1 = time.time()
-    predictions, masked_image = ort_model.predict(frame, image)
+    predictions, a_name, a_path = ort_model.predict(frame, image)
     t2 = time.time()
     t_infer = (t2-t1)*1000
     response = {
         'created': datetime.utcnow().isoformat(),
         'inference_time': t_infer,
+        'annotated_image_name': a_name,
+        'annotated_image_path': a_path,
         'predictions': predictions
         }
-    return response, masked_image
+    return response
 
 def warmup_image(batch_size, warmup_dim):
     for _ in range(batch_size):

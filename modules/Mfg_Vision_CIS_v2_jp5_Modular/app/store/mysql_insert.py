@@ -3,7 +3,6 @@ import os
 from datetime import datetime
 import time
 import mysql.connector as msql
-# import mariadb as msql
 import json
 
 class InsertInference():
@@ -39,10 +38,6 @@ class InsertInference():
         self.create_record()
     
     def create_record(self):
-        # try:
-        # except msql.Error as e:
-        #     print(f"Error connecting to the database: {e}")
-        #     sys.exit(1)
         
         with msql.connect(host="127.0.0.1", user="SA", password=f"{self.sql_pwd}", database=f"{self.sql_db}") as sql_conn:
             print('Connected to DB')

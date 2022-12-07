@@ -122,17 +122,10 @@
             "settings": {
               "image": "${MODULES.Mfg_Vision_CIS_v2_jp5_Modular}",
               "createOptions": {
-                "NetworkingConfig": {
-                  "EndpointsConfig": {
-                    "host": {}
-                  }
-                },
                 "HostConfig": {
                   "Privileged": true,
-                  "IpcMode": "host",
                   "gpus": 0,
                   "runtime": "nvidia",
-                  "NetworkMode": "host",
                   "Binds": [
                     "/home/edge_assets/images_volume:/images_volume",
                     "/home/edge_assets/model_sync:/model_volume",
@@ -174,7 +167,6 @@
             }
           },
           "Mfg_Vision_v2_jp5_Model_Sync": {
-            "startupOrder": 2,
             "settings": {
               "image": "${MODULES.Mfg_Vision_v2_jp5_Model_Sync}",
               "createOptions": {
@@ -202,7 +194,6 @@
             "restartPolicy": "always"
           },
           "Mfg_Vision_v2_jp5_Capture_Repo": {
-            "startupOrder": 3,
             "version": "1.0",
             "type": "docker",
             "status": "running",
@@ -226,7 +217,6 @@
             }
           },
           "Mfg_Vision_v2_jp5_Inference_Repo": {
-            "startupOrder": 4,
             "version": "1.0",
             "type": "docker",
             "status": "running",
@@ -258,13 +248,7 @@
             "settings": {
               "image": "${MODULES.Mfg_Vision_v2_jp5_Image_Upload}",
               "createOptions": {
-                "NetworkingConfig": {
-                  "EndpointsConfig": {
-                    "host": {}
-                  }
-                },
                 "HostConfig": {
-                  "NetworkMode": "host",
                   "Binds": [
                     "/home/edge_assets/images_volume:/images_volume"
                   ],
@@ -348,9 +332,9 @@
                   }
                 },
                 "Env": [
-                  "MYSQL_DATABASE=defectdb",
+                  "MYSQL_DATABASE=${MYSQL_DB}",
                   "MYSQL_USER=SA",
-                  "MYSQL_PASSWORD=Password123"
+                  "MYSQL_PASSWORD=${MYSQL_SA_PASSWORD}"
                 ]
               }
             }
@@ -393,16 +377,16 @@
             },
             "env": {
               "CAMS_TO_DISPLAY": {
-                "value": "1"
+                "value": "2"
               },
               "MYSQL_DATABASE": {
-                "value": "defectdb"
+                "value": "${MYSQL_DB}"
               },
               "MYSQL_USER": {
                 "value": "SA"
               },
               "MYSQL_PWD": {
-                "value": "Password123"
+                "value": "${MYSQL_SA_PASSWORD}"
               }
             }
           }

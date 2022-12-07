@@ -43,15 +43,12 @@ class ONNXRuntimeObjectDetection():
     def predict(self, pre_image):
         sess_input = self.session.get_inputs()
         sess_output = self.session.get_outputs()
-
         output_names = [output.name for output in sess_output]
         outputs = self.session.run(output_names=output_names, input_feed={sess_input[0].name:pre_image})
         
         def _get_box_dims(image_shape, box):
             box_keys = ['left', 'top', 'width', 'height']
-
             bbox = dict(zip(box_keys, [coordinate.item() for coordinate in box]))
-
             return bbox
 
         def _get_prediction(boxes, labels, scores, image_shape, classes):
