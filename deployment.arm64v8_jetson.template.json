@@ -122,10 +122,17 @@
             "settings": {
               "image": "${MODULES.Mfg_Vision_CIS_v2_jp5_Modular}",
               "createOptions": {
+                "NetworkingConfig": {
+                  "EndpointsConfig": {
+                    "host": {}
+                  }
+                },
                 "HostConfig": {
                   "Privileged": true,
+                  "IpcMode": "host",
                   "gpus": 0,
                   "runtime": "nvidia",
+                  "NetworkMode": "host",
                   "Binds": [
                     "/home/edge_assets/images_volume:/images_volume",
                     "/home/edge_assets/model_sync:/model_volume",

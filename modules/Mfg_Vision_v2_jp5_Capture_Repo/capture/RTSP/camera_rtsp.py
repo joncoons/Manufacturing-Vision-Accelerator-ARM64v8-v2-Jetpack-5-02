@@ -54,8 +54,8 @@ class RTSP_Camera():
         self.retrainInterval = retrainInterval
         self.storeRawFrames = storeRawFrames
         self.storeAllInferences = storeAllInferences
-        self.SqlDb = os.environ["MYSQL_DB"]
-        self.SqlPwd = os.environ["MYSQL_SA_PASSWORD"]
+        self.SqlDb = os.environ["MYSQL_DATABASE"]
+        self.SqlPwd = os.environ["MYSQL_PWD"]
         self.model_name = modelName
         self.model_version = modelVersion
         self.send_to_upload = send_to_upload
@@ -93,22 +93,21 @@ class RTSP_Camera():
                     if self.frameRateCount == int(self.camFPS/self.inferenceFPS):
                         self.frameRateCount = 0
                         self.cycle_begin = time.time()
-                        h, w = frame.shape[:2]
-                        if ((self.modelAcvOcr == True) and (self.modelAcvOcrSecondary != True)):
-                            model_type = 'OCR'
-                            frame_optimized = frame_resize(frame, self.targetDim, model = "ocr")
-                            headers = {'Content-Type': 'application/octet-stream'}
-                            encodedFrame = cv2.imencode('.jpg', frame_optimized)[1].tobytes()
-                            try:
-                                ocr_response = requests.post(self.modelAcvOcrUri, headers = headers, data = encodedFrame)
-                                ocr_url = ocr_response.headers["Operation-Location"]
-                                result = None
-                                while result is None:
-                                    result = self.get_response(ocr_url)
-                            except Exception as e:
-                                print('Send to OCR Exception -' + str(e))
-                                result = "[]"
-
+                        h, w = frame.shape[:2]                       
+                        if self.modelAcvMultiClass:
+                            from inference.ort_acv_mc_class import predict_acv_mc_class
+                            model_type = 'Multi-Class Classification'
+                            frame_optimized = frame_resize(frame, self.targetDim, model = "classification")
+                            result = predict_acv_mc_class(frame_optimized)
+                            predictions = result['predictions']
+                            frame_resized = frame_optimized.copy()
+                        elif self.modelAcvMultiLabel:
+                            from inference.ort_acv_ml_class import predict_acv_ml_class
+                            model_type = 'Multi-Class Classification'
+                            frame_optimized = frame_resize(frame, self.targetDim, model = "classification")
+                            result = predict_acv_ml_class(frame_optimized)
+                            predictions = result['predictions']
+                            frame_resized = frame_optimized.copy()
                         elif self.modelAcvOD:
                             model_type = 'Object Detection'
                             frame_optimized = frame_resize(frame, self.targetDim, model = "acv")
@@ -162,9 +161,6 @@ class RTSP_Camera():
                         else:
                             print("No model selected")
                             result = None
-                        
-                        if result is not None:
-                            print(json.dumps(result))
 
                         now = datetime.now()
                         created = now.isoformat()
@@ -185,33 +181,7 @@ class RTSP_Camera():
                             t_infer = result["inference_time"]
                             print(f"Detection Count: {detection_count}")
 
-
-                        if ((model_type == 'OCR') and (self.modelAcvOcrSecondary == False)):
-
-                                print(f'[{datetime.now()}] Results: {result["analyzeResult"]["readResults"]}')
-
-                                # Add additional logic to extract desired text from OCR if needed and/or annotate frame with
-                                # the bounding box of the text scene.
-
-                                ocr_inference_obj = {
-                                    'model_name': self.model_name,
-                                    'object_detected': obj_det_val,
-                                    'camera_id': self.camID,
-                                    'camera_name': f"{self.camLocation}-{self.camPosition}",
-                                    'raw_image_name': frameFileName,
-                                    'raw_image_local_path': frameFilePath,
-                                    'annotated_image_name': frameFileName,
-                                    'annotated_image_path': frameFilePath,
-                                    'inferencing_time': t_infer,
-                                    'created': created,
-                                    'unique_id': unique_id,
-                                    'detected_objects': result["analyzeResult"]["readResults"]
-                                }
-
-                                sql_insert = InsertInference(self.SqlDb, self.SqlPwd, detection_count, inference_obj)           
-                                self.send_to_upstream(json.dumps(inference_obj))
-
-                        elif model_type == 'Object Detection':
+                        if model_type == 'Object Detection':
                             # detection_count = len(result['predictions'][0])
                             # t_infer = result["inference_time"]
                             # print(f"Detection Count: {detection_count}")
@@ -231,9 +201,6 @@ class RTSP_Camera():
                                 'detected_objects': predictions
                                 }
 
-                                sql_insert = InsertInference(self.SqlDb, self.SqlPwd, detection_count, inference_obj)           
-                                self.send_to_upstream(json.dumps(inference_obj))
-
                                 # For establishing boundary area - comment out if not used
                                 boundary_active = self.__convertStringToBool(os.environ['BOUNDARY_DETECTION'])
                                 work_polygon = Polygon(self.work_boundary)
@@ -251,7 +218,7 @@ class RTSP_Camera():
                                     # color = (0, 255, 0)
                                     # thickness = 1
                                     # if bounding_box:
-                                    #     if self.modelACV:
+                                    #     if self.modelAcvOD:
                                     #         height, width, channel = annotated_frame.shape
                                     #         xmin = int(bounding_box["left"] * width)
                                     #         xmax = int((bounding_box["left"] * width) + (bounding_box["width"] * width))
@@ -276,7 +243,7 @@ class RTSP_Camera():
                                     thickness1 = 1
                                     thickness2 = 1
                                     if bounding_box:
-                                        if self.modelACV:
+                                        if self.modelAcvOD:
                                             height, width, channel = annotated_frame.shape
                                             xmin = int(bounding_box["left"] * width)
                                             xmax = int((bounding_box["left"] * width) + (bounding_box["width"] * width))
@@ -309,7 +276,7 @@ class RTSP_Camera():
                                     # thickness1 = 1
                                     # thickness2 = 1
                                     # if bounding_box:
-                                    #     if self.modelACV:
+                                    #     if self.modelAcvOD:
                                     #         height, width, channel = annotated_frame.shape
                                     #         xmin = int(bounding_box["left"] * width)
                                     #         xmax = int((bounding_box["left"] * width) + (bounding_box["width"] * width))
@@ -489,7 +456,7 @@ class RTSP_Camera():
 
                         FrameSave(frameFilePath, frame_optimized)
 
-                        if (self.storeRawFrames == True):
+                        if detection_count == 0 and self.storeRawFrames:
                             frame_msg = {
                             'fs_name': "images-frame",
                             'img_name': frameFileName,
@@ -534,23 +501,6 @@ class RTSP_Camera():
                 print(e)
                 retry_backoff = pow(retry_backoff,2)
                 time.sleep(retry_backoff)
-
-    def get_response(self, url: str) -> Optional[Any]:
-        """Sends a GET request to the URL. Returns None if the endpoint
-        reports the job is still running. Else, returns the response as JSON.
-
-        Args:
-            url (str): Endpoint to get response from.
-
-        Returns:
-            Optional[Any]: JSON response from the endpoint. None if the job is still running.
-        """
-        response = requests.get(url)
-        if response.json()["status"] == "running":
-            return None
-        else:
-            # print(response.json())
-            return response.json()
     
     def __convertStringToBool(self, env: str) -> bool:
         if env in ['true', 'True', 'TRUE', '1', 'y', 'YES', 'Y', 'Yes']:

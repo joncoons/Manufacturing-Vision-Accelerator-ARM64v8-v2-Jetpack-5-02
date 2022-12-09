@@ -86,8 +86,7 @@ class Cam_File_Sink():
                     img_path = os.path.join(("/image_sink_volume"), filename)
                     current = os.path.dirname(os.path.abspath(__file__))
                     frame = cv2.imread(img_path)
-                    h, w = frame.shape[:2]
-                                            
+                    h, w = frame.shape[:2]                            
                     if self.modelAcvMultiClass:
                         from inference.ort_acv_mc_class import predict_acv_mc_class
                         model_type = 'Multi-Class Classification'
@@ -198,9 +197,6 @@ class Cam_File_Sink():
                             'detected_objects': predictions
                             }
 
-                            sql_insert = InsertInference(self.SqlDb, self.SqlPwd, detection_count, inference_obj)           
-                            self.send_to_upstream(json.dumps(inference_obj))
-
                             # For establishing boundary area - comment out if not used
                             boundary_active = self.__convertStringToBool(os.environ['BOUNDARY_DETECTION'])
                             work_polygon = Polygon(self.work_boundary)
@@ -276,7 +272,7 @@ class Cam_File_Sink():
                                 # thickness1 = 1
                                 # thickness2 = 1
                                 # if bounding_box:
-                                #     if self.modelACV:
+                                #     if self.modelAcvOD:
                                 #         height, width, channel = annotated_frame.shape
                                 #         xmin = int(bounding_box["left"] * width)
                                 #         xmax = int((bounding_box["left"] * width) + (bounding_box["width"] * width))
@@ -387,7 +383,7 @@ class Cam_File_Sink():
                             FrameSave(annotatedPath, annotated_frame)
                             
                             annotated_msg = {
-                            'fs_name': "annotated-mask-JP5-test",
+                            'fs_name': "images-annotated",
                             'img_name': annotatedName,
                             'location': self.camLocation,
                             'position': self.camPosition,
@@ -417,9 +413,7 @@ class Cam_File_Sink():
 
                  
                     elif model_type == 'Multi-Label Classification' or model_type == 'Multi-Label Classification':
-                        detection_count = len(result['predictions'])
                         t_infer = result["inference_time"]
-                        print(f"Detection Count: {detection_count}")
                         if detection_count > 0:
                             inference_obj = {
                             'model_name': self.model_name,
