@@ -477,9 +477,9 @@ class RTSP_Camera():
                             }
                             self.send_to_upload(json.dumps(retrain_msg))
                     
-                    self.cycle_end = time.time()
-                    self.t_full_cycle = (self.cycle_end - self.cycle_begin)*1000
-                    print("Cycle Time in ms: {}".format(self.t_full_cycle))
+                        self.cycle_end = time.time()
+                        self.t_full_cycle = (self.cycle_end - self.cycle_begin)*1000
+                        print("Cycle Time in ms: {}".format(self.t_full_cycle))
 
             else:
                 print("Can't receive frame (stream end?). Attempting reconnection")  
