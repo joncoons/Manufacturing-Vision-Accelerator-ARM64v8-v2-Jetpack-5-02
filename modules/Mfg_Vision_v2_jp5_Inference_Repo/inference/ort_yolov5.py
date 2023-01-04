@@ -34,7 +34,7 @@ class ONNXRuntimeObjectDetection():
         
         self.sess_input = self.session.get_inputs()
         self.sess_output = self.session.get_outputs()
-        print(f"No. of inputs : {len(self.sess_input)}, No. of outputs : {len(self.sess_output)}")
+        # print(f"No. of inputs : {len(self.sess_input)}, No. of outputs : {len(self.sess_output)}")
 
         self.input_name = self.session.get_inputs()[0].name
         self.output_name = self.session.get_outputs()[0].name
@@ -90,7 +90,7 @@ class ONNXRuntimeObjectDetection():
             ttl_preds.append(_get_prediction(label, image_shape, self.classes))
 
         if len(ttl_preds) > 0:
-            print(json.dumps(ttl_preds, indent=1))
+            # print(json.dumps(ttl_preds, indent=1))
             return ttl_preds
         else:
             print("No predictions passed the threshold")  

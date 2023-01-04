@@ -116,9 +116,10 @@ class Cam_File_Sink():
                         frame_optimized, ratio, pad_list = frame_resize(frame, self.targetDim, model = "yolov5")
                         result = predict_yolov5(frame_optimized, pad_list)
                         predictions = result['predictions'][0]
-                        new_w = int(ratio[0]*w)
-                        new_h = int(ratio[1]*h)
+                        new_w = int(ratio[1]*w)
+                        new_h = int(ratio[0]*h)
                         frame_resized = cv2.resize(frame, (new_w, new_h), interpolation=cv2.INTER_AREA)
+                        # frame_resized = frame_optimized.transpose(1, 2, 0)
                         annotated_frame = frame_resized.copy()
                     elif self.modelFasterRCNN:
                         from inference.ort_faster_rcnn import predict_faster_rcnn
@@ -173,7 +174,7 @@ class Cam_File_Sink():
                     retrainFilePath = os.path.join('/images_volume', retrainFileName)
                     
                     if result is not None:
-                        print(json.dumps(result))
+                        print(json.dumps(result, indent=1))
 
                     if predictions is not None:
                         detection_count = len(predictions)

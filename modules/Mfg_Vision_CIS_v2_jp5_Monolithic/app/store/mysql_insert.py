@@ -34,7 +34,7 @@ class InsertInference():
         self.t_end = time.time()
         self.t_insert = 0
 
-        print(f"SQL package:  {json.dumps(inference)}")
+        # print(f"SQL package:  {json.dumps(inference)}")
         self.create_record()
     
     def create_record(self):
@@ -57,7 +57,7 @@ class InsertInference():
             cursor.execute(create_inference_tbl)
             cursor.execute(create_detections_tbl)
 
-            print("Created tables")
+            # print("Created tables")
 
             cursor.execute("""INSERT into inference_data 
                         (model_name, object_detected, camera_id, camera_name, raw_image_name, raw_image_local_path,

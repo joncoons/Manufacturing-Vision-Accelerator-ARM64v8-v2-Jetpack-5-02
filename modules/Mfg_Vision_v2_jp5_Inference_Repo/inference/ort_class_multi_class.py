@@ -104,7 +104,7 @@ class ONNXRuntimeClassificationMultiClass():
                 }
             })
 
-        print(f"Predictions : {pred_list}")
+        # print(f"Predictions : {pred_list}")
 
         return pred_list
 
@@ -146,7 +146,7 @@ def predict_class_multi_class(image):
         'inference_time': t_infer,
         'predictions': img_predict
         }
-    print(f"Response : {response}")
+    # print(f"Response : {response}")
     return response
 
 def warmup_image(batch_size, warmup_dim):

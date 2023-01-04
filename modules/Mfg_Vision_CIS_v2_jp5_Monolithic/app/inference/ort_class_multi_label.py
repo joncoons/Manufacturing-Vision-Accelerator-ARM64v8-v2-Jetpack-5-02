@@ -87,9 +87,9 @@ class ONNXRuntimeClassificationMultiClass():
         y2 = int(0)
         for class_idx, score in enumerate(conf_scores[0]):
             if score > self.target_prob:
-                print(f"probability type: {type(round(score, 4))}")
-                print(f"class type: {type(self.classes[class_idx])}")
-                print(f"class_idx type: {type(class_idx)}")
+                # print(f"probability type: {type(round(score, 4))}")
+                # print(f"class type: {type(self.classes[class_idx])}")
+                # print(f"class_idx type: {type(class_idx)}")
                 pred_list.append({
                     "probability": float(round(score, 4)),
                     "labelId": class_idx,
@@ -102,8 +102,8 @@ class ONNXRuntimeClassificationMultiClass():
                     }
                 })
 
-        print(f"Predictions : {pred_list}")
-        print(f"Pred_list Type: {type(pred_list)}")
+        # print(f"Predictions : {pred_list}")
+        # print(f"Pred_list Type: {type(pred_list)}")
         return pred_list
 
 def log_msg(msg):
@@ -151,7 +151,7 @@ def predict_class_multi_label(image):
         'predictions': img_predict
         }
     # print(f"Response Type: {type(response)}")
-    print(f"Response : {response}")
+    # print(f"Response : {response}")
     return response
 
 def warmup_image(batch_size, warmup_dim):

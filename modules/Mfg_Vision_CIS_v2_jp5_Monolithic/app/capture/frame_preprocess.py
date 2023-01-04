@@ -101,18 +101,20 @@ def frame_resize(img, target, model):
             interp = cv2.INTER_CUBIC
         aspect = w/h 
         if aspect > 1: # horizontal image
-            ratio = target / w
+            ratio = sw / w
             new_w = sw
-            new_h = np.round(new_w/aspect).astype(int)
-            pad_vert = (sh-new_h)/2
-            pad_top, pad_bot = np.floor(pad_vert).astype(int), np.ceil(pad_vert).astype(int)
+            new_h = np.round(h * ratio).astype(int)
+            if new_h <= sh:
+                pad_vert = (sh-new_h)/2
+                pad_top, pad_bot = np.floor(pad_vert).astype(int), np.ceil(pad_vert).astype(int)
             pad_left, pad_right = 0, 0
         else: # vertical image
-            ratio = target / h
+            ratio = sh / h
             new_h = sh
-            new_w = np.round(new_h*aspect).astype(int)
-            pad_horz = (sw-new_w)/2
-            pad_left, pad_right = np.floor(pad_horz).astype(int), np.ceil(pad_horz).astype(int)
+            new_w = np.round(w * ratio).astype(int)
+            if new_w <= sw:
+                pad_horz = (sw-new_w)/2
+                pad_left, pad_right = np.floor(pad_horz).astype(int), np.ceil(pad_horz).astype(int)
             pad_top, pad_bot = 0, 0
 
         print (f'Original resize: {new_h} x {new_w}, Padded resize: {(sh, sw)}')

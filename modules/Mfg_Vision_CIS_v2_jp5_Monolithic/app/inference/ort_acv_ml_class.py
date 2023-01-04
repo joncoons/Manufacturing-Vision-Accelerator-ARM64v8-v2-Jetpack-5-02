@@ -59,9 +59,9 @@ class ONNXRuntimeACVClass:
         y2 = int(0)
         for class_idx, score in enumerate(conf_scores[0]):
             if score > self.target_prob:
-                print(f"probability type: {type(round(score, 4))}")
-                print(f"class type: {type(self.classes[class_idx])}")
-                print(f"class_idx type: {type(class_idx)}")
+                # print(f"probability type: {type(round(score, 4))}")
+                # print(f"class type: {type(self.classes[class_idx])}")
+                # print(f"class_idx type: {type(class_idx)}")
                 pred_list.append({
                     "probability": float(round(score, 4)),
                     "labelId": class_idx,
@@ -74,7 +74,7 @@ class ONNXRuntimeACVClass:
                     }
                 })
 
-        print(f"Predictions : {pred_list}")
+        # print(f"Predictions : {pred_list}")
         # print(f"Pred_list Type: {type(pred_list)}")
         return pred_list
 
@@ -99,13 +99,13 @@ def predict_acv_ml_class(image):
     mean_vec = np.array([0.485, 0.456, 0.406])
     std_vec = np.array([0.229, 0.224, 0.225])
     norm_img_data = np.zeros(frame.shape).astype('float32')
-    print(f"Frame shape: {frame.shape}")
+    # print(f"Frame shape: {frame.shape}")
     for i in range(frame.shape[0]):
         norm_img_data[i,:,:] = (frame[i,:,:] / 255 - mean_vec[i]) / std_vec[i]
     frame = np.expand_dims(norm_img_data, axis=0)
     frame = frame[:, (2, 1, 0), :, :] # BGR to RGB
 
-    print(f"Batch-Size, Channel, Height, Width : {frame.shape}")
+    # print(f"Batch-Size, Channel, Height, Width : {frame.shape}")
 
     t1 = time.time()
     img_predict = od_model.predict(frame)

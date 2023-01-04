@@ -73,7 +73,7 @@ class ONNXRuntimeACVClass:
                         'height': y2
                     }
                 })
-            print(f"Predictions : {pred_list}")
+            # print(f"Predictions : {pred_list}")
 
         else:
             print('No prediction above threshold')

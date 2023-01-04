@@ -195,7 +195,7 @@ class Basler_GVSP_Camera:
                     retrainFilePath = os.path.join('/images_volume', retrainFileName)
                     
                     if result is not None:
-                        print(json.dumps(result))
+                        print(json.dumps(result, indent=1))
 
                     if predictions is not None:
                         detection_count = len(predictions)

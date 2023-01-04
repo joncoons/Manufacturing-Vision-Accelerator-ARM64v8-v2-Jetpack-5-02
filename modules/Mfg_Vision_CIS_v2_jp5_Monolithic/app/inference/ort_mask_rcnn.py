@@ -121,7 +121,7 @@ class ONNXRuntimeObjectDetection():
         predictions, masked_image = _get_prediction(boxes, labels, scores, masks, (self.height_onnx, self.width_onnx), self.classes)
         
         if len(predictions) > 0:
-            print(f"Filtered predictions: {predictions}")
+            # print(f"Filtered predictions: {predictions}")
             return predictions, masked_image
         else:
             print("No predictions passed the threshold")  

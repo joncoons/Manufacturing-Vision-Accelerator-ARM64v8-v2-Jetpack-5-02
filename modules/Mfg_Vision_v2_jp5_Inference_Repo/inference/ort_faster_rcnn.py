@@ -71,7 +71,7 @@ class ONNXRuntimeObjectDetection():
         filtered_pred = [x for x in unfiltered_pred if x['probability'] >= self.target_prob]
 
         if len(filtered_pred) > 0:
-            print(json.dumps(filtered_pred, indent=1))
+            # print(json.dumps(filtered_pred, indent=1))
             return filtered_pred
         else:
             print("No predictions passed the threshold")  
