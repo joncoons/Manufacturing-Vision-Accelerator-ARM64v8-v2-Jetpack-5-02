@@ -452,7 +452,7 @@ class Cam_File_Sink():
 
                     print(f"Frame count = {self.frameCount}")
 
-                    FrameSave(frameFilePath, frame_optimized)
+                    FrameSave(frameFilePath, frame_resized)
 
                     if (self.storeRawFrames == True):
                         frame_msg = {

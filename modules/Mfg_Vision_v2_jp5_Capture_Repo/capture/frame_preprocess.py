@@ -57,37 +57,6 @@ def frame_resize(img, target, model):
         scaled_frame = cv2.resize(img, (new_w, new_h), interpolation=interp)
         scaled_frame = cv2.copyMakeBorder(scaled_frame, pad_top, pad_bot, pad_left, pad_right, borderType=cv2.BORDER_CONSTANT, value=padColor)        
         return scaled_frame
-        
-    # elif model in ('faster_rcnn', 'retinanet', 'mask_rcnn'):
-    #     padColor = [0,0,0]
-    #     target_ratio = target/800
-    #     h, w = img.shape[:2]
-    #     ratio = target / max(h, w)
-    #     print(f'Ratio: {ratio}')
-    #     new_w = int(w * ratio)
-    #     new_h = int(h * ratio)
-    #     print(f'New H x W: {new_h} x {new_w}')
-    #     if h > new_h or w > new_w: # shrinking 
-    #         interp = cv2.INTER_AREA
-    #     else: # stretching 
-    #         interp = cv2.INTER_CUBIC
-    #     scaled_frame = cv2.resize(img, (new_w, new_h), interpolation=interp)
-    #     sh = target
-    #     sw = target / target_ratio
-    #     print (f'Original resize: {scaled_frame.shape[:2]}, Padded resize: {(sh, sw)}')
-    #     if int(sw-new_w) > 0:
-    #         pad_horz = (sw-new_w)/2
-    #         pad_left, pad_right = np.floor(pad_horz).astype(int), np.ceil(pad_horz).astype(int)
-    #     else:
-    #         pad_left, pad_right = 0, 0
-    #     if int(sh-new_h) > 0:
-    #         pad_vert = (sh-new_h)/2
-    #         pad_top, pad_bot = np.floor(pad_vert).astype(int), np.ceil(pad_vert).astype(int)
-    #     else:
-    #         pad_top, pad_bot = 0, 0
-    #     scaled_frame = cv2.copyMakeBorder(scaled_frame, pad_top, pad_bot, pad_left, pad_right, borderType=cv2.BORDER_CONSTANT, value=padColor) 
-
-    #     return scaled_frame
 
     elif model in ('faster_rcnn', 'retinanet', 'mask_rcnn'):
         padColor = [0,0,0]
@@ -104,20 +73,28 @@ def frame_resize(img, target, model):
             ratio = sw / w
             new_w = sw
             new_h = np.round(h * ratio).astype(int)
-            if new_h <= sh:
+            if new_h > sh:
+                new_h = sh
+            if new_h < sh:
                 pad_vert = (sh-new_h)/2
                 pad_top, pad_bot = np.floor(pad_vert).astype(int), np.ceil(pad_vert).astype(int)
+            else:
+                pad_top, pad_bot = 0, 0
             pad_left, pad_right = 0, 0
         else: # vertical image
             ratio = sh / h
             new_h = sh
             new_w = np.round(w * ratio).astype(int)
-            if new_w <= sw:
+            if new_w > sw:
+                new_w = sw
+            if new_w < sw:
                 pad_horz = (sw-new_w)/2
                 pad_left, pad_right = np.floor(pad_horz).astype(int), np.ceil(pad_horz).astype(int)
+            else:
+                pad_left, pad_right = 0, 0
             pad_top, pad_bot = 0, 0
 
-        print (f'Original resize: {new_h} x {new_w}, Padded resize: {(sh, sw)}')
+        print (f'Original: {h} x {w}, Resize: {new_h} x {new_w}, Padded resize: {(sh, sw)}')
 
         padding = pad_left, pad_right, pad_top, pad_bot
         scaled_frame = cv2.resize(img, (new_w, new_h), interpolation=interp)

@@ -23,11 +23,17 @@
             "type": "docker",
             "settings": {
               "image": "mcr.microsoft.com/azureiotedge-agent:1.4",
-              "createOptions": {}
+              "createOptions": {
+                "HostConfig": {
+                  "Binds": [
+                    "/home/edge_assets/edge_agent_volume:/edge_agent_volume/edgeAgent"
+                  ]
+                }
+              }
             },
             "env": {
               "storageFolder": {
-                "value": "edge_agent_volume"
+                "value": "/edge_agent_volume/edgeAgent"
               }
             }
           },
@@ -39,6 +45,9 @@
               "image": "mcr.microsoft.com/azureiotedge-hub:1.4",
               "createOptions": {
                 "HostConfig": {
+                  "Binds": [
+                    "/home/edge_assets/edge_hub_volume:/edge_hub_volume/edgeHub"
+                  ],
                   "PortBindings": {
                     "5671/tcp": [
                       {
@@ -61,7 +70,7 @@
             },
             "env": {
               "storageFolder": {
-                "value": "edge_hub_volume"
+                "value": "/edge_hub_volume/edgeHub"
               }
             }
           }
@@ -384,7 +393,7 @@
             },
             "env": {
               "CAMS_TO_DISPLAY": {
-                "value": "2"
+                "value": "4"
               },
               "MYSQL_DATABASE": {
                 "value": "${MYSQL_DB}"
@@ -405,9 +414,9 @@
         "schemaVersion": "1.1",
         "routes": {
           "Mfg_Vision_CIS_v2_jp5_Monolithic_Inference_Upload": "FROM /messages/modules/Mfg_Vision_CIS_v2_jp5_Monolithic/outputs/outputInference INTO $upstream",
-          "Mfg_Vision_CIS_v2_jp5_Monolithic_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_v2_jp5_Monolithic/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_Image_Upload/inputs/inputImageSend\")",
+          "Mfg_Vision_CIS_v2_jp5_Monolithic_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_v2_jp5_Monolithic/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_v2_jp5_Image_Upload/inputs/inputImageSend\")",
           "Mfg_Vision_CIS_v2_jp5_Modular_Inference_Upload": "FROM /messages/modules/Mfg_Vision_CIS_v2_jp5_Modular/outputs/outputInference INTO $upstream",
-          "Mfg_Vision_CIS_v2_jp5_Modular_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_v2_jp5_Modular/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_Image_Upload/inputs/inputImageSend\")"
+          "Mfg_Vision_CIS_v2_jp5_Modular_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_v2_jp5_Modular/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_v2_jp5_Image_Upload/inputs/inputImageSend\")"
         },
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200

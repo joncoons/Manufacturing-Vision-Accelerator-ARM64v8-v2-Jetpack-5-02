@@ -104,20 +104,28 @@ def frame_resize(img, target, model):
             ratio = sw / w
             new_w = sw
             new_h = np.round(h * ratio).astype(int)
-            if new_h <= sh:
+            if new_h > sh:
+                new_h = sh
+            if new_h < sh:
                 pad_vert = (sh-new_h)/2
                 pad_top, pad_bot = np.floor(pad_vert).astype(int), np.ceil(pad_vert).astype(int)
+            else:
+                pad_top, pad_bot = 0, 0
             pad_left, pad_right = 0, 0
         else: # vertical image
             ratio = sh / h
             new_h = sh
             new_w = np.round(w * ratio).astype(int)
-            if new_w <= sw:
+            if new_w > sw:
+                new_w = sw
+            if new_w < sw:
                 pad_horz = (sw-new_w)/2
                 pad_left, pad_right = np.floor(pad_horz).astype(int), np.ceil(pad_horz).astype(int)
+            else:
+                pad_left, pad_right = 0, 0
             pad_top, pad_bot = 0, 0
 
-        print (f'Original resize: {new_h} x {new_w}, Padded resize: {(sh, sw)}')
+        print (f'Original: {h} x {w}, Resize: {new_h} x {new_w}, Padded resize: {(sh, sw)}')
 
         padding = pad_left, pad_right, pad_top, pad_bot
         scaled_frame = cv2.resize(img, (new_w, new_h), interpolation=interp)
